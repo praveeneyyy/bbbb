@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 
 /* ─── Canvas Particle Background ─────────────────────────────────── */
 interface Particle {
@@ -241,33 +241,20 @@ function NoButton() {
 export default function Valentine() {
   const [answered, setAnswered] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [audioStarted, setAudioStarted] = useState(false);
-  const [showHint, setShowHint] = useState(true);
+  const [showHint, setShowHint] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
-
-  const startAudio = useCallback(() => {
-    if (!audioStarted && audioRef.current) {
-      audioRef.current.play().then(() => {
-        setAudioStarted(true);
-        setShowHint(false);
-      }).catch(() => {});
-    }
-  }, [audioStarted]);
 
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.play().then(() => {
-        setAudioStarted(true);
         setShowHint(false);
-      }).catch(() => {});
+      }).catch((err) => {
+        // Fallback: Show the hint if autoplay fails
+        setShowHint(true);
+        console.warn("Autoplay was blocked by the browser. Waiting for interaction.", err);
+      });
     }
   }, []);
-
-  useEffect(() => {
-    const h = () => startAudio();
-    document.addEventListener("click", h, { once: true });
-    return () => document.removeEventListener("click", h);
-  }, [startAudio]);
 
   useEffect(() => {
     if (audioRef.current) audioRef.current.muted = isMuted;
