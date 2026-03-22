@@ -245,15 +245,27 @@ export default function Valentine() {
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
+    const handleInteraction = () => {
+      if (audioRef.current) {
+        audioRef.current.play().then(() => {
+          setShowHint(false);
+          document.removeEventListener("click", handleInteraction);
+        }).catch(() => {});
+      }
+    };
+
     if (audioRef.current) {
       audioRef.current.play().then(() => {
         setShowHint(false);
       }).catch((err) => {
-        // Fallback: Show the hint if autoplay fails
+        // Fallback: Show the hint and wait for interaction if autoplay fails
         setShowHint(true);
+        document.addEventListener("click", handleInteraction);
         console.warn("Autoplay was blocked by the browser. Waiting for interaction.", err);
       });
     }
+
+    return () => document.removeEventListener("click", handleInteraction);
   }, []);
 
   useEffect(() => {
